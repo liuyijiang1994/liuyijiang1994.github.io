@@ -270,6 +270,154 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/26/Pytorch中LSTM相关问题/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Peco Liu">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="PECO的记事本">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/26/Pytorch中LSTM相关问题/" itemprop="url">Pytorch中LSTM相关问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-26T16:20:58+08:00">
+                2018-10-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/实验记录/" itemprop="url" rel="index">
+                    <span itemprop="name">实验记录</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>个人认为在工程方面，主要的工作量在于两点，1.预处理数据，2.计算各个中间阶段输出tensor的shape。只要明白每个阶段输出的shape，就可以知道具体值的意思，内部处理的方式，让代码组织结构清晰起来。所以弄清楚每个操作的输出的shape很重要。</p>
+<p>这里记录一下pytorch中LSTM的输出shape，代码如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> torch <span class="keyword">import</span> nn</span><br><span class="line"></span><br><span class="line">input = torch.randn(<span class="number">16</span>, <span class="number">80</span>, <span class="number">100</span>)</span><br><span class="line">lstm = nn.LSTM(<span class="number">100</span>, <span class="number">256</span>, <span class="number">1</span>, batch_first=<span class="keyword">True</span>, bidirectional=<span class="keyword">False</span>)</span><br><span class="line">out, (h_t, c_t) = lstm(input)</span><br><span class="line">print(out.shape)</span><br><span class="line">print(c_t.shape)</span><br><span class="line">print(h_t.shape)</span><br></pre></td></tr></table></figure>
+<p>输出是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">torch.Size([16, 80, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br></pre></td></tr></table></figure>
+<p>这里，out包含了所有节点的hidden，而h_t仅为第t步（即最后一步）的hidden。在单层的时候，h_t=out[-1] 。当然，修改layer_num或者bidirection之后，输出的shape会发生改变，会相应的在一个维度上倍增。</p>
+<p>具体的描述可以参考这篇：<a href="https://zhuanlan.zhihu.com/p/28919765" target="_blank" rel="noopener">学会区分 RNN 的 output 和 state</a>  。不过里面把（h,c）写成了（c,h），需要自己分辨一下。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/24/Relation-Extraction实验过程记录/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -989,7 +1137,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

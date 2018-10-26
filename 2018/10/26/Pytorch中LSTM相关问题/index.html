@@ -87,10 +87,12 @@
 <meta property="og:site_name" content="PECO的记事本">
 <meta property="og:description" content="个人认为在工程方面，主要的工作量在于两点，1.预处理数据，2.计算各个中间阶段输出tensor的shape。只要明白每个阶段输出的shape，就可以知道具体值的意思，内部处理的方式，让代码组织结构清晰起来。所以弄清楚每个操作的输出的shape很重要。 这里记录一下pytorch中LSTM的输出shape，代码如： 123456789import torchfrom torch import nni">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-26T09:19:44.307Z">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/Pytorch中LSTM相关问题/SouthEast.png">
+<meta property="og:updated_time" content="2018-10-26T09:24:18.896Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Pytorch中LSTM相关问题">
 <meta name="twitter:description" content="个人认为在工程方面，主要的工作量在于两点，1.预处理数据，2.计算各个中间阶段输出tensor的shape。只要明白每个阶段输出的shape，就可以知道具体值的意思，内部处理的方式，让代码组织结构清晰起来。所以弄清楚每个操作的输出的shape很重要。 这里记录一下pytorch中LSTM的输出shape，代码如： 123456789import torchfrom torch import nni">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/26/Pytorch中LSTM相关问题/SouthEast.png">
 
 
 
@@ -367,7 +369,10 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> torch <span class="keyword">import</span> nn</span><br><span class="line"></span><br><span class="line">input = torch.randn(<span class="number">16</span>, <span class="number">80</span>, <span class="number">100</span>)</span><br><span class="line">lstm = nn.LSTM(<span class="number">100</span>, <span class="number">256</span>, <span class="number">1</span>, batch_first=<span class="keyword">True</span>, bidirectional=<span class="keyword">False</span>)</span><br><span class="line">out, (h_t, c_t) = lstm(input)</span><br><span class="line">print(out.shape)</span><br><span class="line">print(c_t.shape)</span><br><span class="line">print(h_t.shape)</span><br></pre></td></tr></table></figure>
 <p>输出是：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">torch.Size([16, 80, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br></pre></td></tr></table></figure>
-<p>这里，out包含了所有节点的hidden，而h_t仅为第t步（即最后一步）的hidden。在单层的时候，h_t=out[-1] 。当然，修改layer_num或者bidirection之后，输出的shape会发生改变，会相应的在一个维度上倍增。</p>
+<p>把几个值的相互关系放在这里便于理解：</p>
+<img src="/2018/10/26/Pytorch中LSTM相关问题/SouthEast.png" title="lstm">
+<p>这里，out包含了所有节点的hidden，而h_t仅为第t步（即最后一步）的hidden。在单层的时候，h_t=out[-1] 。当然，修改layer_num或者bidirection之后，输出的shape会发生改变，会相应的在一个维度上倍增。即：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_hidden</span><span class="params">(self, batch_size)</span>:</span></span><br><span class="line">    dim0 = self.num_layers * <span class="number">2</span> <span class="keyword">if</span> self.is_bidirct <span class="keyword">else</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> (torch.zeros(dim0, batch_size, self.hidden_size).cuda(),</span><br><span class="line">                torch.zeros(dim0, batch_size, self.hidden_size).cuda())</span><br></pre></td></tr></table></figure>
 <p>具体的描述可以参考这篇：<a href="https://zhuanlan.zhihu.com/p/28919765" target="_blank" rel="noopener">学会区分 RNN 的 output 和 state</a>  。不过里面把（h,c）写成了（c,h），需要自己分辨一下。</p>
 
       

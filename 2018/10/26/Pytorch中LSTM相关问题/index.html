@@ -88,7 +88,7 @@
 <meta property="og:description" content="个人认为在工程方面，主要的工作量在于两点，1.预处理数据，2.计算各个中间阶段输出tensor的shape。只要明白每个阶段输出的shape，就可以知道具体值的意思，内部处理的方式，让代码组织结构清晰起来。所以弄清楚每个操作的输出的shape很重要。 这里记录一下pytorch中LSTM的输出shape，代码如： 123456789import torchfrom torch import nni">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/10/26/Pytorch中LSTM相关问题/SouthEast.png">
-<meta property="og:updated_time" content="2018-10-26T09:25:36.485Z">
+<meta property="og:updated_time" content="2019-03-26T11:17:56.820Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Pytorch中LSTM相关问题">
 <meta name="twitter:description" content="个人认为在工程方面，主要的工作量在于两点，1.预处理数据，2.计算各个中间阶段输出tensor的shape。只要明白每个阶段输出的shape，就可以知道具体值的意思，内部处理的方式，让代码组织结构清晰起来。所以弄清楚每个操作的输出的shape很重要。 这里记录一下pytorch中LSTM的输出shape，代码如： 123456789import torchfrom torch import nni">
@@ -371,8 +371,26 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">torch.Size([16, 80, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br><span class="line">torch.Size([1, 16, 256])</span><br></pre></td></tr></table></figure>
 <p>把几个值的相互关系放在这里便于理解：</p>
 <img src="/2018/10/26/Pytorch中LSTM相关问题/SouthEast.png" title="lstm">
-<p>这里，out包含了所有节点的hidden，而h_t仅为第t步（即最后一步）的hidden。在单层的时候，h_t=out[-1] 。当然，修改layer_num或者bidirection之后，输出的shape会发生改变，会相应的在一个维度上倍增。即：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_hidden</span><span class="params">(self, batch_size)</span>:</span></span><br><span class="line">    dim0 = self.num_layers * <span class="number">2</span> <span class="keyword">if</span> self.is_bidirct <span class="keyword">else</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> (torch.zeros(dim0, batch_size, self.hidden_size).cuda(),</span><br><span class="line">                torch.zeros(dim0, batch_size, self.hidden_size).cuda())</span><br></pre></td></tr></table></figure>
+<p>单层单向的情况下：( num_layer=0, bidirection=False )</p>
+<p>out的输出为 batch x seq_len x hidden 保存了一句话从头到尾每一个token的hidden</p>
+<p>h的输出为       1  x batch x hidden 保存了网络输出通道的每句话的最后一个hidden</p>
+<p>out[:, -1, :] 和h的值相等</p>
+<p>多层单向的情况下：（num_layer=n, bidirection=False）</p>
+<p>out的输出维度为 batch x seq_len x hidden</p>
+<p>h的输出维度为 n x batch x hidden</p>
+<p>此时out只保留最上层网络的每一个h</p>
+<p>h的值为每一层网络的值</p>
+<p>单层双向：（ num_layer=0, bidirection=True ）</p>
+<p>out的维度为 batch x seq_len x hidden*2</p>
+<p>h的维度为 2 x batch x hidden</p>
+<p>此时out保存的是每一个句子中每一个token在前向和后向的两个h，并做了串接</p>
+<p>h保存的是前向网络和后向网络两个网络的最后一步的h，且都以行进的方向作为下标</p>
+<p>也就是说 对于一个句子，h[0] h[1]两个网络的输出中 h[1] 逆向后与h[0]串接才能组成out的最后一步</p>
+<p>多层多向：（ num_layer=n, bidirection=True ）</p>
+<p>out的维度为  batch x seq_len x hidden*2</p>
+<p>h的 维度为 n*2 x batch x hidden </p>
+<p>总结：out保存的是最上层的双向单元串接后（如果是双向的话）的每一个step（每一个token）的h</p>
+<p>h保存的是每一个网络层、反向的最后一步的h，双向lstm中的h反向层的h是前进顺序的，相对来说是逆序的。</p>
 <p>具体的描述可以参考这篇：<a href="https://zhuanlan.zhihu.com/p/28919765" target="_blank" rel="noopener">学会区分 RNN 的 output 和 state</a>  。不过里面把（h,c）写成了（c,h），需要自己分辨一下。</p>
 
       
@@ -565,7 +583,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
